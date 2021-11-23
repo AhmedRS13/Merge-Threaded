@@ -1,0 +1,105 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+
+int a[(int)1e7]={0};
+
+
+
+
+void merge(int l,int r){
+    int mid=(l+r)/2;
+    int lsize=mid-l+1;
+    int rsize=r-(mid+1)+1;
+    int larray[lsize];
+    int rarray[rsize];
+    int rx,lx;
+    rx=lx=0;
+    for(int i = l;i<=r;i++){
+        if(i<=mid){
+            larray[lx++]=a[i];
+        }else{
+            rarray[rx++]=a[i];
+        }
+    }
+
+    rx=lx=0;
+    int c=l;
+
+    for(;lx<lsize && rx<rsize;){
+        if(larray[lx] <rarray[rx]){
+            a[c++]=larray[lx++];
+        }else{
+            a[c++]=rarray[rx++];
+        }
+    }
+    for(;lx<lsize;lx++){
+        a[c++]=larray[lx];
+    }
+    for(;rx<rsize;rx++){
+        a[c++]=rarray[rx];
+    }
+}
+
+
+
+
+void  mergeSort(int *lr){
+    int l=lr[0];
+    int r=lr[1];
+    if(l<r)
+    {
+        int mid=(l+r)/2;
+        int llr[2]={l,mid};
+        int lrr[2]={mid+1,r};
+
+        pthread_t lthread;
+        pthread_t rthread;
+        pthread_create(&lthread,NULL,mergeSort,llr);
+        pthread_create(&rthread,NULL,mergeSort,lrr);
+        pthread_join(lthread,0);
+        pthread_join(rthread,0);
+        merge(l,r);
+    }
+}
+
+
+
+
+int read(){
+
+    int n;
+    FILE *fptr = fopen("file.txt","r");
+    fscanf(fptr,"%d\n",&n);
+    for(int i= 0;i<n;i++){
+        fscanf(fptr,"%d ",&a[i]);
+    }
+    fclose(fptr);
+    free(fptr);
+    return n;
+
+}
+
+
+
+
+int main()
+{
+
+
+    int numOfitems=read();
+    int lastx=numOfitems-1;
+    int lr[2]={0,lastx};
+
+    pthread_t topthread;
+    pthread_create(&topthread,NULL,mergeSort,lr);
+    pthread_join(topthread,0);
+
+    for(int i=0;i<numOfitems;i++){
+        printf("%d ",a[i]);
+    }
+
+    return 0;
+}
+
+
